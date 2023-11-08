@@ -1,2 +1,61 @@
-# Calculations-on-clothing-trends
-CTE, COUNT,SUM,AVG
+# Calculations-clothing-trends
+/*Performing the main calculations
+ count,count distinct,sum,average*/
+
+select
+	count(distinct `Customer ID`) as total_number_of_customer
+	,(select count(Gender) from shopping_trends st where Gender  = 'male') as male_customers
+	,count(distinct `Customer ID`) - (select count(Gender) from shopping_trends st where Gender  = 'male') as female_customer
+    ,round(avg(Age),2)  as avg_age_customer 
+    ,round(avg(`Review Rating`),2) as avg_rating
+    ,round(sum(`Purchase Amount (USD)`),2)  as summary_purchase_USD
+    ,count(distinct `Item Purchased`)  as number_of_distinct_item
+from shopping_trends st 
+
+
+/*Application WHERE, HAVING,SUBQUERY*/
+select 
+	st.`Size` 
+	,(select count(`Customer ID`) from shopping_trends) as number_of_customer
+	,s.number_of_customer_s 
+	,round((s.number_of_customer_s/(select count(`Customer ID`) from shopping_trends))*100,2)   as percent_ratio
+from shopping_trends st 
+inner join(
+	select 
+		`Size` 
+		,count(`Customer ID`)  as number_of_customer_s 
+	from shopping_trends st 
+	where gender = 'male'
+	group by 1
+	having count(`Customer ID`)>300
+)	s on s.`Size` = st.`Size` 
+group by 1
+order by 3
+
+/*\Application CTE
+How many orders a particular item generated and 
+what percentage of all orders a given item constitutes.
+- in our case number of castomer = number of orders*/
+with
+total_number_of_orders as 
+(
+	select 
+		count(`Customer ID`) as number_of_orders 
+	from shopping_trends st 
+),
+orders_group_by_item as
+(
+	select 
+		`Item Purchased`  
+		,count(`Customer ID`) as orders_group_by_item
+	from shopping_trends st
+	group by 1
+)
+select 
+	`Item Purchased`  
+	,tnof.number_of_orders 
+	,ogbi.orders_group_by_item
+	,round((ogbi.orders_group_by_item)/(tnof.number_of_orders)*100,2) as percent_ratio 
+from orders_group_by_item             ogbi
+cross join total_number_of_orders     tnof
+order by 3 desc 
