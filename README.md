@@ -1,4 +1,5 @@
 # Calculations-clothing-trends
+Before uploading tables to MySQL I used to PowerQuery to ETL (extract, transform and load) the data.
 /*Performing the main calculations
  count,count distinct,sum,average*/
 
